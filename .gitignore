@@ -1,0 +1,14 @@
+# Bỏ qua Core WordPress
+wp-admin/
+wp-includes/
+
+# Bỏ qua file cấu hình mật khẩu Database
+wp-config.php
+
+# Bỏ qua thư mục chứa ảnh upload (để source code nhẹ)
+wp-content/uploads/
+
+# Bỏ qua các file hệ thống máy chủ
+.htaccess
+error_log   
+.DS_Store

@@ -1,0 +1,697 @@
+/******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
+/******/ 	var __webpack_modules__ = ({
+
+/***/ "./assets/src/js/utils.js"
+/*!********************************!*\
+  !*** ./assets/src/js/utils.js ***!
+  \********************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   eventHandlers: () => (/* binding */ eventHandlers),
+/* harmony export */   getDataOfForm: () => (/* binding */ getDataOfForm),
+/* harmony export */   getFieldKeysOfForm: () => (/* binding */ getFieldKeysOfForm),
+/* harmony export */   listenElementCreated: () => (/* binding */ listenElementCreated),
+/* harmony export */   listenElementViewed: () => (/* binding */ listenElementViewed),
+/* harmony export */   lpAddQueryArgs: () => (/* binding */ lpAddQueryArgs),
+/* harmony export */   lpAjaxParseJsonOld: () => (/* binding */ lpAjaxParseJsonOld),
+/* harmony export */   lpClassName: () => (/* binding */ lpClassName),
+/* harmony export */   lpFetchAPI: () => (/* binding */ lpFetchAPI),
+/* harmony export */   lpGetCurrentURLNoParam: () => (/* binding */ lpGetCurrentURLNoParam),
+/* harmony export */   lpOnElementReady: () => (/* binding */ lpOnElementReady),
+/* harmony export */   lpSetLoadingEl: () => (/* binding */ lpSetLoadingEl),
+/* harmony export */   lpShowHideEl: () => (/* binding */ lpShowHideEl),
+/* harmony export */   mergeDataWithDatForm: () => (/* binding */ mergeDataWithDatForm),
+/* harmony export */   toggleCollapse: () => (/* binding */ toggleCollapse)
+/* harmony export */ });
+/**
+ * Utils functions
+ *
+ * @param url
+ * @param data
+ * @param functions
+ * @since 4.2.5.1
+ * @version 1.0.5
+ */
+const lpClassName = {
+  hidden: 'lp-hidden',
+  loading: 'loading',
+  elCollapse: 'lp-collapse',
+  elSectionToggle: '.lp-section-toggle',
+  elTriggerToggle: '.lp-trigger-toggle'
+};
+const lpFetchAPI = (url, data = {}, functions = {}) => {
+  if ('function' === typeof functions.before) {
+    functions.before();
+  }
+  fetch(url, {
+    method: 'GET',
+    ...data
+  }).then(response => response.json()).then(response => {
+    if ('function' === typeof functions.success) {
+      functions.success(response);
+    }
+  }).catch(err => {
+    if ('function' === typeof functions.error) {
+      functions.error(err);
+    }
+  }).finally(() => {
+    if ('function' === typeof functions.completed) {
+      functions.completed();
+    }
+  });
+};
+
+/**
+ * Get current URL without params.
+ *
+ * @since 4.2.5.1
+ */
+const lpGetCurrentURLNoParam = () => {
+  let currentUrl = window.location.href;
+  const hasParams = currentUrl.includes('?');
+  if (hasParams) {
+    currentUrl = currentUrl.split('?')[0];
+  }
+  return currentUrl;
+};
+const lpAddQueryArgs = (endpoint, args) => {
+  const url = new URL(endpoint);
+  Object.keys(args).forEach(arg => {
+    url.searchParams.set(arg, args[arg]);
+  });
+  return url;
+};
+
+/**
+ * Listen element viewed.
+ *
+ * @param el
+ * @param callback
+ * @since 4.2.5.8
+ */
+const listenElementViewed = (el, callback) => {
+  const observerSeeItem = new IntersectionObserver(function (entries) {
+    for (const entry of entries) {
+      if (entry.isIntersecting) {
+        callback(entry);
+      }
+    }
+  });
+  observerSeeItem.observe(el);
+};
+
+/**
+ * Listen element created.
+ *
+ * @param callback
+ * @since 4.2.5.8
+ */
+const listenElementCreated = callback => {
+  const observerCreateItem = new MutationObserver(function (mutations) {
+    mutations.forEach(function (mutation) {
+      if (mutation.addedNodes) {
+        mutation.addedNodes.forEach(function (node) {
+          if (node.nodeType === 1) {
+            callback(node);
+          }
+        });
+      }
+    });
+  });
+  observerCreateItem.observe(document, {
+    childList: true,
+    subtree: true
+  });
+  // End.
+};
+
+/**
+ * Listen element created.
+ *
+ * @param selector
+ * @param callback
+ * @since 4.2.7.1
+ */
+const lpOnElementReady = (selector, callback) => {
+  const element = document.querySelector(selector);
+  if (element) {
+    callback(element);
+    return;
+  }
+  const observer = new MutationObserver((mutations, obs) => {
+    const element = document.querySelector(selector);
+    if (element) {
+      obs.disconnect();
+      callback(element);
+    }
+  });
+  observer.observe(document.documentElement, {
+    childList: true,
+    subtree: true
+  });
+};
+
+// Parse JSON from string with content include LP_AJAX_START.
+const lpAjaxParseJsonOld = data => {
+  if (typeof data !== 'string') {
+    return data;
+  }
+  const m = String.raw({
+    raw: data
+  }).match(/<-- LP_AJAX_START -->(.*)<-- LP_AJAX_END -->/s);
+  try {
+    if (m) {
+      data = JSON.parse(m[1].replace(/(?:\r\n|\r|\n)/g, ''));
+    } else {
+      data = JSON.parse(data);
+    }
+  } catch (e) {
+    data = {};
+  }
+  return data;
+};
+
+// status 0: hide, 1: show
+const lpShowHideEl = (el, status = 0) => {
+  if (!el) {
+    return;
+  }
+  if (!status) {
+    el.classList.add(lpClassName.hidden);
+  } else {
+    el.classList.remove(lpClassName.hidden);
+  }
+};
+
+// status 0: hide, 1: show
+const lpSetLoadingEl = (el, status) => {
+  if (!el) {
+    return;
+  }
+  if (!status) {
+    el.classList.remove(lpClassName.loading);
+  } else {
+    el.classList.add(lpClassName.loading);
+  }
+};
+
+// Toggle collapse section
+const toggleCollapse = (e, target, elTriggerClassName = '', elsExclude = [], callback) => {
+  if (!elTriggerClassName) {
+    elTriggerClassName = lpClassName.elTriggerToggle;
+  }
+
+  // Exclude elements, which should not trigger the collapse toggle
+  if (elsExclude && elsExclude.length > 0) {
+    for (const elExclude of elsExclude) {
+      if (target.closest(elExclude)) {
+        return;
+      }
+    }
+  }
+  const elTrigger = target.closest(elTriggerClassName);
+  if (!elTrigger) {
+    return;
+  }
+
+  //console.log( 'elTrigger', elTrigger );
+
+  const elSectionToggle = elTrigger.closest(`${lpClassName.elSectionToggle}`);
+  if (!elSectionToggle) {
+    return;
+  }
+  elSectionToggle.classList.toggle(`${lpClassName.elCollapse}`);
+  if ('function' === typeof callback) {
+    callback(elSectionToggle);
+  }
+};
+
+// Get data of form
+const getDataOfForm = form => {
+  const dataSend = {};
+  const formData = new FormData(form);
+  for (const pair of formData.entries()) {
+    const key = pair[0];
+    const value = formData.getAll(key);
+    if (!dataSend.hasOwnProperty(key)) {
+      // Convert value array to string.
+      dataSend[key] = value.join(',');
+    }
+  }
+  return dataSend;
+};
+
+// Get field keys of form
+const getFieldKeysOfForm = form => {
+  const keys = [];
+  const elements = form.elements;
+  for (let i = 0; i < elements.length; i++) {
+    const name = elements[i].name;
+    if (name && !keys.includes(name)) {
+      keys.push(name);
+    }
+  }
+  return keys;
+};
+
+// Merge data handle with data form.
+const mergeDataWithDatForm = (elForm, dataHandle) => {
+  const dataForm = getDataOfForm(elForm);
+  const keys = getFieldKeysOfForm(elForm);
+  keys.forEach(key => {
+    if (!dataForm.hasOwnProperty(key)) {
+      delete dataHandle[key];
+    } else if (dataForm[key][0] === '') {
+      delete dataForm[key];
+      delete dataHandle[key];
+    }
+  });
+  dataHandle = {
+    ...dataHandle,
+    ...dataForm
+  };
+  return dataHandle;
+};
+
+/**
+ * Event trigger
+ * For each list of event handlers, listen event on document.
+ *
+ * eventName: 'click', 'change', ...
+ * eventHandlers = [ { selector: '.lp-button', callBack: function(){}, class: object } ]
+ *
+ * @param eventName
+ * @param eventHandlers
+ */
+const eventHandlers = (eventName, eventHandlers) => {
+  document.addEventListener(eventName, e => {
+    const target = e.target;
+    let args = {
+      e,
+      target
+    };
+    eventHandlers.forEach(eventHandler => {
+      args = {
+        ...args,
+        ...eventHandler
+      };
+
+      //console.log( args );
+
+      // Check condition before call back
+      if (eventHandler.conditionBeforeCallBack) {
+        if (eventHandler.conditionBeforeCallBack(args) !== true) {
+          return;
+        }
+      }
+
+      // Special check for keydown event with checkIsEventEnter = true
+      if (eventName === 'keydown' && eventHandler.checkIsEventEnter) {
+        if (e.key !== 'Enter') {
+          return;
+        }
+      }
+      if (target.closest(eventHandler.selector)) {
+        if (eventHandler.class) {
+          // Call method of class, function callBack will understand exactly {this} is class object.
+          eventHandler.class[eventHandler.callBack](args);
+        } else {
+          // For send args is objected, {this} is eventHandler object, not class object.
+          eventHandler.callBack(args);
+        }
+      }
+    });
+  });
+};
+
+/***/ }
+
+/******/ 	});
+/************************************************************************/
+/******/ 	// The module cache
+/******/ 	var __webpack_module_cache__ = {};
+/******/ 	
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/ 		// Check if module is in cache
+/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = __webpack_module_cache__[moduleId] = {
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
+/******/ 			exports: {}
+/******/ 		};
+/******/ 	
+/******/ 		// Execute the module function
+/******/ 		if (!(moduleId in __webpack_modules__)) {
+/******/ 			delete __webpack_module_cache__[moduleId];
+/******/ 			var e = new Error("Cannot find module '" + moduleId + "'");
+/******/ 			e.code = 'MODULE_NOT_FOUND';
+/******/ 			throw e;
+/******/ 		}
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 	
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/ 	
+/************************************************************************/
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__webpack_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__webpack_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/************************************************************************/
+var __webpack_exports__ = {};
+// This entry needs to be wrapped in an IIFE because it needs to be isolated against other modules in the chunk.
+(() => {
+/*!*******************************************************!*\
+  !*** ./assets/src/js/admin/list-students-enrolled.js ***!
+  \*******************************************************/
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   ListStudentsEnrolled: () => (/* binding */ ListStudentsEnrolled)
+/* harmony export */ });
+/* harmony import */ var lpAssetsJsPath_utils_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! lpAssetsJsPath/utils.js */ "./assets/src/js/utils.js");
+/**
+ * List Students Enrolled Script
+ *
+ * Handles filter and search interactions for the enrolled students table.
+ * Pagination is handled by loadAJAX.js clickNumberPage (via .page-numbers class).
+ *
+ * @since 4.3.3
+ * @version 1.0.0
+ */
+
+class ListStudentsEnrolled {
+  constructor() {
+    this.instructorId = null;
+    this.elContainer = null;
+    this.isRequesting = false;
+  }
+  static selectors = {
+    elContainer: '#lp-enrolled-students',
+    elForm: '.lp-enrolled-students-form',
+    elLPTarget: '.lp-target',
+    elCourseNameInput: '.lp-enrolled-filter-course-name',
+    elCourseIdInput: '#lp-enrolled-filter-course-id',
+    elCourseList: '#lp-enrolled-course-list',
+    elSearchInput: '.lp-enrolled-search-input',
+    elStartDateInput: '.lp-enrolled-filter-start-date',
+    elEndDateInput: '.lp-enrolled-filter-end-date',
+    elBtnSearch: '.lp-enrolled-btn-search',
+    elBtnClear: '.lp-enrolled-btn-clear'
+  };
+  init() {
+    this.elContainer = document.querySelector(ListStudentsEnrolled.selectors.elContainer);
+    if (!this.elContainer) {
+      return;
+    }
+    const elLPTarget = this.elContainer.querySelector(ListStudentsEnrolled.selectors.elLPTarget);
+    const ajaxHandle = this.getAjaxHandle();
+    if (elLPTarget && ajaxHandle) {
+      const dataSend = ajaxHandle.getDataSetCurrent(elLPTarget);
+      if (dataSend && dataSend.args) {
+        this.instructorId = dataSend.args.instructor_id;
+      }
+    }
+    this.events();
+  }
+  events() {
+    if (ListStudentsEnrolled._loadedEvents) {
+      return;
+    }
+    ListStudentsEnrolled._loadedEvents = this;
+
+    // Search/Clear button click.
+    lpAssetsJsPath_utils_js__WEBPACK_IMPORTED_MODULE_0__.eventHandlers('click', [{
+      selector: ListStudentsEnrolled.selectors.elBtnSearch,
+      class: this,
+      callBack: this.searchStudents.name
+    }, {
+      selector: ListStudentsEnrolled.selectors.elBtnClear,
+      class: this,
+      callBack: this.clearFilters.name
+    }]);
+
+    // Search on Enter key.
+    lpAssetsJsPath_utils_js__WEBPACK_IMPORTED_MODULE_0__.eventHandlers('keydown', [{
+      selector: ListStudentsEnrolled.selectors.elSearchInput,
+      class: this,
+      callBack: this.triggerBtnSearch.name,
+      checkIsEventEnter: true
+    }, {
+      selector: ListStudentsEnrolled.selectors.elCourseNameInput,
+      class: this,
+      callBack: this.triggerBtnSearch.name,
+      checkIsEventEnter: true
+    }, {
+      selector: ListStudentsEnrolled.selectors.elStartDateInput,
+      class: this,
+      callBack: this.triggerBtnSearch.name,
+      checkIsEventEnter: true
+    }, {
+      selector: ListStudentsEnrolled.selectors.elEndDateInput,
+      class: this,
+      callBack: this.triggerBtnSearch.name,
+      checkIsEventEnter: true
+    }]);
+    lpAssetsJsPath_utils_js__WEBPACK_IMPORTED_MODULE_0__.eventHandlers('change', [{
+      selector: ListStudentsEnrolled.selectors.elStartDateInput,
+      class: this,
+      callBack: this.checkDatesRange.name
+    }, {
+      selector: ListStudentsEnrolled.selectors.elEndDateInput,
+      class: this,
+      callBack: this.checkDatesRange.name
+    }]);
+  }
+
+  // Click button search.
+  triggerBtnSearch() {
+    const buttonSearch = this.elContainer.querySelector(ListStudentsEnrolled.selectors.elBtnSearch);
+    if (buttonSearch) {
+      buttonSearch.click();
+    }
+  }
+
+  // Ensure start date is not after end date and vice versa. If invalid, adjust the other date to match.
+  checkDatesRange(args) {
+    const {
+      e
+    } = args;
+    const elInput = e?.target;
+    if (!elInput) {
+      return;
+    }
+    const elForm = elInput.closest(ListStudentsEnrolled.selectors.elForm);
+    if (!elForm) {
+      return;
+    }
+    const startDateInput = elForm.querySelector(ListStudentsEnrolled.selectors.elStartDateInput);
+    const endDateInput = elForm.querySelector(ListStudentsEnrolled.selectors.elEndDateInput);
+    if (elInput === startDateInput) {
+      if (startDateInput.value) {
+        endDateInput.min = startDateInput.value;
+        if (endDateInput.value && endDateInput.value < startDateInput.value) {
+          endDateInput.value = startDateInput.value;
+        }
+      } else {
+        endDateInput.min = '';
+      }
+    } else if (elInput === endDateInput) {
+      if (endDateInput.value) {
+        startDateInput.max = endDateInput.value;
+        if (startDateInput.value && startDateInput.value > endDateInput.value) {
+          startDateInput.value = endDateInput.value;
+        }
+      } else {
+        startDateInput.max = '';
+      }
+    }
+  }
+  setButtonLoadingState(btn, isLoading) {
+    if (!btn) {
+      return;
+    }
+    lpAssetsJsPath_utils_js__WEBPACK_IMPORTED_MODULE_0__.lpSetLoadingEl(btn, isLoading ? 1 : 0);
+    btn.disabled = !!isLoading;
+  }
+  getAjaxHandle() {
+    const ajaxHandle = window.lpAJAXG;
+    if (!ajaxHandle || typeof ajaxHandle.getDataSetCurrent !== 'function' || typeof ajaxHandle.setDataSetCurrent !== 'function' || typeof ajaxHandle.showHideLoading !== 'function' || typeof ajaxHandle.fetchAJAX !== 'function') {
+      return null;
+    }
+    return ajaxHandle;
+  }
+  syncCourseIdFromName(elForm) {
+    const courseIdInput = elForm?.querySelector(ListStudentsEnrolled.selectors.elCourseIdInput);
+    if (!courseIdInput) {
+      return;
+    }
+    courseIdInput.value = '0';
+    const courseNameInput = elForm.querySelector(ListStudentsEnrolled.selectors.elCourseNameInput);
+    const datalist = elForm.querySelector(ListStudentsEnrolled.selectors.elCourseList);
+    const courseName = courseNameInput?.value.trim() || '';
+    if (!courseName || !datalist) {
+      return;
+    }
+    const selectedOption = Array.from(datalist.options || []).find(option => option.value.trim() === courseName);
+    if (selectedOption) {
+      courseIdInput.value = selectedOption.dataset.courseId || '0';
+    }
+  }
+  getFilterArgsFromForm(elForm, dataArgs = {}) {
+    this.syncCourseIdFromName(elForm);
+    return lpAssetsJsPath_utils_js__WEBPACK_IMPORTED_MODULE_0__.mergeDataWithDatForm(elForm, dataArgs);
+  }
+
+  /**
+   * Search students: update args.search, re-fetch.
+   * @param args
+   */
+  searchStudents(args) {
+    const {
+      e
+    } = args;
+    if (e) {
+      e.preventDefault();
+    }
+    const btn = args?.target?.closest(ListStudentsEnrolled.selectors.elBtnSearch);
+    if (btn) {
+      if (this.isRequesting || btn.classList.contains('loading') || btn.disabled) {
+        return;
+      }
+    } else if (this.isRequesting) {
+      return;
+    }
+    const elForm = btn.closest(ListStudentsEnrolled.selectors.elForm);
+    const elLPTarget = this.elContainer.querySelector(ListStudentsEnrolled.selectors.elLPTarget);
+    if (!elLPTarget || !elForm) {
+      return;
+    }
+    const ajaxHandle = this.getAjaxHandle();
+    if (!ajaxHandle) {
+      return;
+    }
+    this.setButtonLoadingState(btn, true);
+    const dataSend = ajaxHandle.getDataSetCurrent(elLPTarget);
+    dataSend.args = this.getFilterArgsFromForm(elForm, dataSend.args || {});
+    dataSend.args.paged = 1;
+    ajaxHandle.setDataSetCurrent(elLPTarget, dataSend);
+    this.reloadContent(elLPTarget, dataSend, btn);
+  }
+
+  /**
+   * Clear all filters and reload default data.
+   * @param args
+   */
+  clearFilters(args) {
+    const {
+      e
+    } = args;
+    if (e) {
+      e.preventDefault();
+    }
+    const btn = args?.target?.closest(ListStudentsEnrolled.selectors.elBtnClear);
+    if (btn) {
+      if (this.isRequesting || btn.classList.contains('loading') || btn.disabled) {
+        return;
+      }
+    } else if (this.isRequesting) {
+      return;
+    }
+    const elForm = btn.closest(ListStudentsEnrolled.selectors.elForm);
+    const elLPTarget = this.elContainer.querySelector(ListStudentsEnrolled.selectors.elLPTarget);
+    if (!elLPTarget || !elForm) {
+      return;
+    }
+    const ajaxHandle = this.getAjaxHandle();
+    if (!ajaxHandle) {
+      return;
+    }
+    this.setButtonLoadingState(btn, true);
+    elForm.reset();
+    this.syncCourseIdFromName(elForm);
+    const dataSend = ajaxHandle.getDataSetCurrent(elLPTarget);
+    dataSend.args = lpAssetsJsPath_utils_js__WEBPACK_IMPORTED_MODULE_0__.mergeDataWithDatForm(elForm, dataSend.args || {});
+    dataSend.args.paged = 1;
+    ajaxHandle.setDataSetCurrent(elLPTarget, dataSend);
+    this.reloadContent(elLPTarget, dataSend, btn);
+  }
+
+  /**
+   * Shared reload helper: loading indicator + AJAX fetch.
+   * @param elLPTarget
+   * @param dataSend
+   * @param btn
+   */
+  reloadContent(elLPTarget, dataSend, btn = null) {
+    const ajaxHandle = this.getAjaxHandle();
+    if (!ajaxHandle) {
+      this.isRequesting = false;
+      this.setButtonLoadingState(btn, false);
+      return;
+    }
+    this.isRequesting = true;
+    ajaxHandle.showHideLoading(elLPTarget, 1);
+    const callBack = {
+      success: response => {
+        const {
+          status,
+          data
+        } = response;
+        if ('success' === status) {
+          elLPTarget.innerHTML = data.content;
+        }
+      },
+      error: error => console.error(error),
+      completed: () => {
+        this.isRequesting = false;
+        ajaxHandle.showHideLoading(elLPTarget, 0);
+        this.setButtonLoadingState(btn, false);
+      }
+    };
+    ajaxHandle.fetchAJAX(dataSend, callBack);
+  }
+}
+
+// Auto-initialize when DOM is available (for standalone page load).
+const listStudentsEnrolled = new ListStudentsEnrolled();
+lpAssetsJsPath_utils_js__WEBPACK_IMPORTED_MODULE_0__.lpOnElementReady(ListStudentsEnrolled.selectors.elContainer, () => {
+  listStudentsEnrolled.init();
+});
+})();
+
+/******/ })()
+;
+//# sourceMappingURL=list-students-enrolled.js.map
